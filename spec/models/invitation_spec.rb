@@ -5,11 +5,9 @@ RSpec.describe Invitation do
     describe "after_save" do
       context "with valid data" do
         it "invites the user" do
-          team       = create(:team, name: "A fine team")
-          new_user   = create(:user, email: "rookie@example.com")
-          invitation = build(:invitation, team: team, user: new_user)
-
-          set_team_owner(team)
+          team       = create_team "A fine team"
+          new_user   = create_user_with_email "rookie@example.com"
+          invitation = build_invitation_with team: team, user: new_user
 
           invitation.save
 
@@ -19,11 +17,8 @@ RSpec.describe Invitation do
 
       context "with invalid data" do
         it "does not save the invitation" do
-          team       = create(:team, name: "A fine team")
-          new_user   = create(:user, email: "rookie@example.com")
-          invitation = build(:invitation, team: nil, user: new_user)
-
-          set_team_owner(team)
+          new_user   = create_user_with_email "rookie@example.com"
+          invitation = build_invitation_with team: nil, user: new_user
 
           invitation.save
 
@@ -32,11 +27,8 @@ RSpec.describe Invitation do
         end
 
         it "does not mark the user as invited" do
-          team       = create(:team, name: "A fine team")
-          new_user   = create(:user, email: "rookie@example.com")
-          invitation = build(:invitation, team: nil, user: new_user)
-
-          set_team_owner(team)
+          new_user   = create_user_with_email "rookie@example.com"
+          invitation = build_invitation_with team: nil, user: new_user
 
           invitation.save
 
@@ -49,11 +41,9 @@ RSpec.describe Invitation do
   describe "#event_log_statement" do
     context "when the record is saved" do
       it "include the name of the team" do
-        team       = create(:team, name: "A fine team")
-        new_user   = create(:user, email: "rookie@example.com")
-        invitation = build(:invitation, team: team, user: new_user)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        new_user   = create_user_with_email "rookie@example.com"
+        invitation = build_invitation_with team: team, user: new_user
 
         invitation.save
 
@@ -63,11 +53,9 @@ RSpec.describe Invitation do
       end
 
       it "include the email of the invitee" do
-        team       = create(:team, name: "A fine team")
-        new_user   = create(:user, email: "rookie@example.com")
-        invitation = build(:invitation, team: team, user: new_user)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        new_user   = create_user_with_email "rookie@example.com"
+        invitation = build_invitation_with team: team, user: new_user
 
         invitation.save
 
@@ -79,11 +67,9 @@ RSpec.describe Invitation do
 
     context "when the record is not saved but valid" do
       it "includes the name of the team" do
-        team       = create(:team, name: "A fine team")
-        new_user   = create(:user, email: "rookie@example.com")
-        invitation = build(:invitation, team: team, user: new_user)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        new_user   = create_user_with_email "rookie@example.com"
+        invitation = build_invitation_with team: team, user: new_user
 
         invitation.save
 
@@ -93,11 +79,9 @@ RSpec.describe Invitation do
       end
 
       it "includes the email of the invitee" do
-        team       = create(:team, name: "A fine team")
-        new_user   = create(:user, email: "rookie@example.com")
-        invitation = build(:invitation, team: team, user: new_user)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        new_user   = create_user_with_email "rookie@example.com"
+        invitation = build_invitation_with team: team, user: new_user
 
         invitation.save
 
@@ -107,11 +91,9 @@ RSpec.describe Invitation do
       end
 
       it "includes the word 'PENDING'" do
-        team       = create(:team, name: "A fine team")
-        new_user   = create(:user, email: "rookie@example.com")
-        invitation = build(:invitation, team: team, user: new_user)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        new_user   = create_user_with_email "rookie@example.com"
+        invitation = build_invitation_with team: team, user: new_user
 
         log_statement = invitation.event_log_statement
         expect(log_statement).to include("PENDING")
@@ -120,10 +102,8 @@ RSpec.describe Invitation do
 
     context "when the record is not saved and not valid" do
       it "includes INVALID" do
-        team       = create(:team, name: "A fine team")
-        invitation = build(:invitation, team: team, user: nil)
-
-        set_team_owner(team)
+        team       = create_team "A fine team"
+        invitation = build_invitation_with team: team, user: nil
 
         log_statement = invitation.event_log_statement
         expect(log_statement).to include("INVALID")
@@ -131,9 +111,23 @@ RSpec.describe Invitation do
     end
   end
 
-  def set_team_owner(team)
+  def create_team(team_name)
+    team = create(:team, name: team_name)
+    assign_team_owner(team)
+    team
+  end
+
+  def assign_team_owner(team)
     team_owner = create(:user)
     team.update!(owner: team_owner)
     team_owner.update!(team: team)
+  end
+
+  def create_user_with_email(email)
+    create(:user, email: email)
+  end
+
+  def build_invitation_with(team:, user:)
+    build(:invitation, team: team, user: user)
   end
 end
